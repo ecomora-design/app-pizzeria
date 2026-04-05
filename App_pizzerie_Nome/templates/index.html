@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizzeria Online</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Pizzeria Online</h1>
+
+    <h2>Menu</h2>
+    <div id="menu-list"></div>
+
+    <h2>Ordine</h2>
+    <form id="order-form">
+      <input type="text" id="customer_name" placeholder="Nome" required>
+      <input type="text" id="phone" placeholder="Telefono" required>
+
+      <select id="order_type">
+        <option value="pickup">Ritiro</option>
+        <option value="delivery">Consegna</option>
+      </select>
+
+      <input type="text" id="address" placeholder="Indirizzo consegna">
+      <input type="text" id="requested_time" placeholder="Orario richiesto es. 20:30">
+      <textarea id="notes" placeholder="Note"></textarea>
+
+      <button type="submit">Invia ordine</button>
+    </form>
+
+    <p id="result"></p>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
