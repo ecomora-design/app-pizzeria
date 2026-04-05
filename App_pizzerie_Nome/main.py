@@ -12,8 +12,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 DB_NAME = "restaurant.db"
 WHATSAPP_NUMBER = "393884027650"
 PHONE_NUMBER = "+393884027650"
-BRAND_NAME = "ECOMORA"
+BRAND_NAME = "PIZZERIA DA MARIO"
 BRAND_SUBTITLE = "Ordina, prenota e scopri il menu"
+BRAND_LOGO = "/static/logo.png"
+PRIMARY_COLOR = "#ff7a00"
 
 
 def get_connection():
@@ -268,10 +270,10 @@ async def add_item(request: Request):
 
 
 def base_style() -> str:
-    return """
+    return f"""
     <style>
-        :root {
-            --bg1: #ff7a00;
+        :root {{
+            --bg1: {PRIMARY_COLOR};
             --bg2: #ffae42;
             --card: rgba(255,255,255,0.97);
             --text: #1f2937;
@@ -279,17 +281,17 @@ def base_style() -> str:
             --line: #ececec;
             --shadow: 0 18px 40px rgba(0,0,0,0.14);
             --radius-xl: 26px;
-            --primary: #ff6b00;
+            --primary: {PRIMARY_COLOR};
             --primary-dark: #e45c00;
             --green: #25D366;
             --green-dark: #1ebe5d;
-        }
+        }}
 
-        * {
+        * {{
             box-sizing: border-box;
-        }
+        }}
 
-        body {
+        body {{
             margin: 0;
             font-family: Arial, sans-serif;
             color: var(--text);
@@ -300,163 +302,163 @@ def base_style() -> str:
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
-        }
+        }}
 
         body::before,
-        body::after {
+        body::after {{
             position: fixed;
             z-index: 0;
             pointer-events: none;
             opacity: 0.06;
             font-size: 120px;
             line-height: 1;
-        }
+        }}
 
-        body::before {
+        body::before {{
             content: "🍕";
             top: 10px;
             left: 4px;
             transform: rotate(-10deg);
-        }
+        }}
 
-        body::after {
+        body::after {{
             content: "🍝";
             bottom: 16px;
             right: 4px;
             transform: rotate(8deg);
-        }
+        }}
 
-        .page-wrap {
+        .page-wrap {{
             position: relative;
             z-index: 1;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             padding: 16px 10px 92px;
-        }
+        }}
 
-        .container {
+        .container {{
             width: 100%;
             max-width: 620px;
-        }
+        }}
 
-        .topbar {
+        .topbar {{
             text-align: center;
             margin-bottom: 16px;
-        }
+        }}
 
-        .brand-logo-wrap {
+        .brand-logo-wrap {{
             display: flex;
             justify-content: center;
             margin-bottom: 8px;
-        }
+        }}
 
-        .brand-logo {
+        .brand-logo {{
             width: min(230px, 76vw);
             max-height: 86px;
             object-fit: contain;
             filter: drop-shadow(0 8px 18px rgba(0,0,0,0.14));
-        }
+        }}
 
-        .brand-sub {
+        .brand-sub {{
             color: rgba(255,255,255,0.96);
             font-size: 13px;
             font-weight: 700;
             text-align: center;
-        }
+        }}
 
         .hero-box,
         .panel,
         #cart,
         form,
-        .accordion {
+        .accordion {{
             background: var(--card);
             border-radius: var(--radius-xl);
             box-shadow: var(--shadow);
-        }
+        }}
 
         .hero-box,
         .panel,
         #cart,
-        form {
+        form {{
             padding: 18px;
-        }
+        }}
 
-        h1 {
+        h1 {{
             margin: 0 0 8px 0;
             text-align: center;
             color: var(--primary);
             font-size: 28px;
             line-height: 1.15;
-        }
+        }}
 
-        .subtitle {
+        .subtitle {{
             margin: 0;
             text-align: center;
             color: var(--muted);
             line-height: 1.45;
             font-size: 14px;
-        }
+        }}
 
-        h2 {
+        h2 {{
             margin: 18px 0 10px;
             color: white;
             text-align: center;
             font-size: 20px;
-        }
+        }}
 
-        .grid-3 {
+        .grid-3 {{
             display: grid;
             grid-template-columns: 1fr;
             gap: 12px;
             margin-top: 18px;
-        }
+        }}
 
-        .choice-card {
+        .choice-card {{
             display: block;
             text-decoration: none;
             color: white;
             border-radius: 22px;
             padding: 18px 16px;
             box-shadow: var(--shadow);
-        }
+        }}
 
-        .choice-card .emoji {
+        .choice-card .emoji {{
             font-size: 30px;
             margin-bottom: 8px;
-        }
+        }}
 
-        .choice-card h3 {
+        .choice-card h3 {{
             margin: 0 0 6px 0;
             font-size: 22px;
             color: white;
-        }
+        }}
 
-        .choice-card p {
+        .choice-card p {{
             margin: 0;
             font-size: 14px;
             line-height: 1.45;
-        }
+        }}
 
-        .choice-card .cta {
+        .choice-card .cta {{
             display: inline-block;
             margin-top: 12px;
             font-weight: 800;
             font-size: 14px;
-        }
+        }}
 
-        .ordina-card { background: linear-gradient(135deg, #ff6b00, #ff3d00); }
-        .prenota-card { background: linear-gradient(135deg, #14b8a6, #0f766e); }
-        .menu-card { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .ordina-card {{ background: linear-gradient(135deg, #ff6b00, #ff3d00); }}
+        .prenota-card {{ background: linear-gradient(135deg, #14b8a6, #0f766e); }}
+        .menu-card {{ background: linear-gradient(135deg, #3b82f6, #1d4ed8); }}
 
-        .quick-actions {
+        .quick-actions {{
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-top: 14px;
-        }
+        }}
 
-        .quick-btn {
+        .quick-btn {{
             display: block;
             text-align: center;
             text-decoration: none;
@@ -466,9 +468,9 @@ def base_style() -> str:
             border-radius: 16px;
             font-weight: 800;
             box-shadow: 0 8px 18px rgba(0,0,0,0.08);
-        }
+        }}
 
-        .back-link {
+        .back-link {{
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -481,14 +483,14 @@ def base_style() -> str:
             background: rgba(255,255,255,0.16);
             border: 1px solid rgba(255,255,255,0.20);
             font-size: 14px;
-        }
+        }}
 
-        .accordion {
+        .accordion {{
             overflow: hidden;
             margin-bottom: 12px;
-        }
+        }}
 
-        .accordion-header {
+        .accordion-header {{
             width: 100%;
             background: white;
             border: none;
@@ -498,18 +500,18 @@ def base_style() -> str:
             font-weight: 900;
             cursor: pointer;
             color: var(--text);
-        }
+        }}
 
-        .accordion-content {
+        .accordion-content {{
             display: none;
             padding: 0 12px 12px;
-        }
+        }}
 
-        .accordion-content.open {
+        .accordion-content.open {{
             display: block;
-        }
+        }}
 
-        .menu-item {
+        .menu-item {{
             display: grid;
             grid-template-columns: 1fr;
             gap: 12px;
@@ -518,115 +520,123 @@ def base_style() -> str:
             border-radius: 18px;
             padding: 12px;
             margin-top: 12px;
-        }
+            transition: 0.2s;
+        }}
 
-        .menu-item img {
+        .menu-item:hover {{
+            transform: scale(1.01);
+        }}
+
+        .menu-item img {{
             width: 100%;
-            height: 165px;
+            height: 220px;
             object-fit: cover;
             border-radius: 14px;
             display: block;
-        }
+        }}
 
-        .menu-info strong {
+        .menu-info strong {{
             font-size: 20px;
             display: block;
             margin-bottom: 5px;
-        }
+        }}
 
-        .price {
+        .price {{
             color: var(--primary);
             font-weight: 900;
             font-size: 17px;
             display: block;
             margin-bottom: 6px;
-        }
+        }}
 
-        .menu-desc {
+        .menu-desc {{
             color: var(--muted);
             font-size: 13px;
             line-height: 1.4;
             margin-bottom: 8px;
-        }
+        }}
 
-        .qty-row {
+        .qty-row {{
             display: grid;
             grid-template-columns: 1fr;
             gap: 8px;
             margin-top: 6px;
-        }
+        }}
 
-        .qty-row input {
+        .qty-row input {{
             width: 100%;
-        }
+        }}
 
         .add-btn,
         .remove-btn,
-        button[type="submit"] {
+        button[type="submit"] {{
             border: none;
             border-radius: 14px;
             padding: 13px 14px;
             cursor: pointer;
             font-weight: 900;
             font-size: 15px;
-        }
+        }}
 
-        .add-btn {
+        .add-btn {{
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             width: 100%;
-        }
+        }}
 
-        #cart, form {
+        #cart, form {{
             padding: 16px;
-        }
+        }}
 
-        .cart-empty {
+        .cart-empty {{
             color: var(--muted);
             text-align: center;
             padding: 10px 0 4px;
             font-size: 14px;
-        }
+        }}
 
-        .cart-row {
+        .cart-row {{
             display: grid;
             grid-template-columns: 1fr;
             gap: 8px;
             padding: 12px 0;
             border-bottom: 1px solid var(--line);
-        }
+        }}
 
-        .cart-main {
+        .cart-main {{
             display: flex;
             flex-direction: column;
             gap: 4px;
-        }
+        }}
 
-        .cart-title {
+        .cart-title {{
             font-weight: 800;
             font-size: 14px;
-        }
+        }}
 
-        .cart-price {
+        .cart-price {{
             color: var(--muted);
             font-size: 13px;
-        }
+        }}
 
-        .remove-btn {
+        .remove-btn {{
             width: 100%;
             background: #f3f4f6;
             color: #333;
-        }
+        }}
 
-        #total {
+        #total {{
             font-size: 21px;
             font-weight: 900;
             text-align: center;
             margin: 10px 0 0;
             color: white;
-        }
+            background: rgba(255,255,255,0.16);
+            padding: 10px;
+            border-radius: 14px;
+        }}
 
-        input, select, textarea {
+        input, select, textarea {{
             width: 100%;
             padding: 14px;
             margin-top: 10px;
@@ -635,32 +645,32 @@ def base_style() -> str:
             font-size: 15px;
             background: white;
             outline: none;
-        }
+        }}
 
-        button[type="submit"] {
+        button[type="submit"] {{
             width: 100%;
             margin-top: 12px;
             background: linear-gradient(135deg, var(--green), var(--green-dark));
             color: white;
-        }
+        }}
 
-        .helper-text {
+        .helper-text {{
             font-size: 12px;
             color: var(--muted);
             margin-top: 8px;
             line-height: 1.4;
             text-align: center;
-        }
+        }}
 
-        #result {
+        #result {{
             margin-top: 12px;
             font-weight: 800;
             text-align: center;
             color: white;
             font-size: 14px;
-        }
+        }}
 
-        .app-nav {
+        .app-nav {{
             position: fixed;
             left: 0;
             right: 0;
@@ -670,9 +680,9 @@ def base_style() -> str:
             justify-content: center;
             padding: 10px 10px 14px;
             background: linear-gradient(to top, rgba(255,122,0,0.95), rgba(255,122,0,0.72), transparent);
-        }
+        }}
 
-        .app-nav-inner {
+        .app-nav-inner {{
             width: 100%;
             max-width: 620px;
             background: rgba(255,255,255,0.98);
@@ -681,86 +691,86 @@ def base_style() -> str:
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             overflow: hidden;
-        }
+        }}
 
-        .app-nav a {
+        .app-nav a {{
             text-decoration: none;
             color: var(--text);
             text-align: center;
             padding: 12px 8px;
             font-size: 12px;
             font-weight: 800;
-        }
+        }}
 
-        .app-nav .icon {
+        .app-nav .icon {{
             display: block;
             font-size: 20px;
             margin-bottom: 4px;
-        }
+        }}
 
         .admin-box,
-        .orders-box {
+        .orders-box {{
             background: rgba(255,255,255,0.97);
             border-radius: 28px;
             padding: 24px;
             box-shadow: 0 18px 40px rgba(0,0,0,0.14);
-        }
+        }}
 
-        .simple-logo {
+        .simple-logo {{
             width: min(220px, 72vw);
             max-height: 90px;
             object-fit: contain;
             display: block;
             margin: 0 auto 16px auto;
-        }
+        }}
 
-        .item {
+        .item {{
             padding: 12px 0;
             border-bottom: 1px solid #eee;
-        }
+        }}
 
-        .order-card {
+        .order-card {{
             background: white;
             border-radius: 18px;
             padding: 16px;
             margin-bottom: 14px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        }
+        }}
 
-        @media (min-width: 700px) {
-            .page-wrap {
+        @media (min-width: 700px) {{
+            .page-wrap {{
                 padding: 24px 16px 96px;
-            }
+            }}
 
             .hero-box,
             .panel,
             #cart,
-            form {
+            form {{
                 padding: 22px;
-            }
+            }}
 
-            .menu-item img {
-                height: 210px;
-            }
+            .menu-item img {{
+                height: 260px;
+            }}
 
-            .cart-row {
+            .cart-row {{
                 grid-template-columns: 1fr auto;
                 align-items: center;
-            }
+            }}
 
-            .remove-btn {
+            .remove-btn {{
                 width: auto;
-            }
+            }}
 
-            .brand-logo {
+            .brand-logo {{
                 width: min(300px, 72vw);
                 max-height: 110px;
-            }
+            }}
 
-            h1 {
+            h1 {{
                 font-size: 34px;
-            }
-        }
+            }}
+        }}
     </style>
     """
 
@@ -787,11 +797,11 @@ def shell_page(title: str, body_content: str) -> HTMLResponse:
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <title>{title}</title>
         <link rel="manifest" href="/static/manifest.json">
-        <meta name="theme-color" content="#ff7a00">
+        <meta name="theme-color" content="{PRIMARY_COLOR}">
         <link rel="apple-touch-icon" href="/static/icon-192.png">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="ECOMORA">
+        <meta name="apple-mobile-web-app-title" content="{BRAND_NAME}">
         {base_style()}
     </head>
     <body>
@@ -799,7 +809,7 @@ def shell_page(title: str, body_content: str) -> HTMLResponse:
             <div class="container">
                 <div class="topbar">
                     <div class="brand-logo-wrap">
-                        <img src="/static/logo.png" alt="{BRAND_NAME}" class="brand-logo">
+                        <img src="{BRAND_LOGO}" alt="{BRAND_NAME}" class="brand-logo">
                     </div>
                     <div class="brand-sub">{BRAND_SUBTITLE}</div>
                 </div>
@@ -824,41 +834,87 @@ def shell_page(title: str, body_content: str) -> HTMLResponse:
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    body = f"""
-    <div class="hero-box">
-        <h1>Benvenuto nella web app del locale</h1>
-        <p class="subtitle">Ordina, prenota e consulta il menu in modo semplice, veloce e perfetto da smartphone.</p>
+    return HTMLResponse(f"""
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{BRAND_NAME}</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background: linear-gradient(180deg, {PRIMARY_COLOR}, #ff9f1c);
+                text-align: center;
+                color: white;
+                padding: 20px;
+                margin: 0;
+                min-height: 100vh;
+            }}
+            .wrap {{
+                max-width: 520px;
+                margin: 0 auto;
+                padding-top: 20px;
+            }}
+            .logo {{
+                width: 140px;
+                max-width: 70%;
+                border-radius: 20px;
+                margin-bottom: 10px;
+            }}
+            h1 {{
+                margin: 10px 0 8px;
+                font-size: 34px;
+            }}
+            p {{
+                margin: 0;
+                font-size: 16px;
+                opacity: 0.96;
+            }}
+            .card {{
+                background: white;
+                color: black;
+                border-radius: 24px;
+                padding: 20px;
+                margin-top: 24px;
+                box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+            }}
+            .btn {{
+                display: block;
+                padding: 18px;
+                margin: 12px 0;
+                border-radius: 16px;
+                font-size: 18px;
+                font-weight: bold;
+                text-decoration: none;
+                color: white;
+            }}
+            .ordina {{ background: #ff3d00; }}
+            .prenota {{ background: #14b8a6; }}
+            .menu {{ background: #3b82f6; }}
+            .sub {{
+                color: #6b7280;
+                margin-top: 8px;
+                line-height: 1.5;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <img src="{BRAND_LOGO}" class="logo" alt="{BRAND_NAME}">
+            <h1>{BRAND_NAME}</h1>
+            <p>Ordina facilmente dal tuo telefono</p>
 
-        <div class="grid-3">
-            <a class="choice-card ordina-card" href="/ordina">
-                <div class="emoji">🛒</div>
-                <h3>Ordina online</h3>
-                <p>Asporto o domicilio con invio rapido su WhatsApp.</p>
-                <span class="cta">Ordina adesso →</span>
-            </a>
-
-            <a class="choice-card prenota-card" href="/prenota">
-                <div class="emoji">🍽</div>
-                <h3>Prenota tavolo</h3>
-                <p>Compila in pochi secondi e chiedi la conferma in chat.</p>
-                <span class="cta">Prenota subito →</span>
-            </a>
-
-            <a class="choice-card menu-card" href="/menu-view">
-                <div class="emoji">📖</div>
-                <h3>Menu completo</h3>
-                <p>Pizze, primi, secondi, fritti, bevande e dolci.</p>
-                <span class="cta">Scopri il menu →</span>
-            </a>
+            <div class="card">
+                <a class="btn ordina" href="/ordina">📲 ORDINA ORA</a>
+                <a class="btn prenota" href="/prenota">🍽 PRENOTA TAVOLO</a>
+                <a class="btn menu" href="/menu-view">📖 MENU</a>
+                <div class="sub">Menu digitale, ordini su WhatsApp e prenotazioni in un'unica web app.</div>
+            </div>
         </div>
-
-        <div class="quick-actions">
-            <a class="quick-btn" href="tel:{PHONE_NUMBER}">📞 Chiama ora</a>
-            <a class="quick-btn" href="https://wa.me/{WHATSAPP_NUMBER}">💬 WhatsApp</a>
-        </div>
-    </div>
-    """
-    return shell_page("Home", body)
+    </body>
+    </html>
+    """)
 
 
 @app.get("/ordina", response_class=HTMLResponse)
@@ -1074,23 +1130,23 @@ def ordina():
             }});
 
             const orderTypeText = payload.order_type === 'pickup' ? 'Ritiro' : 'Consegna';
-            const addressText = payload.order_type === 'delivery' ? (payload.address || '-') : '-';
 
-            const message = `Nuovo ordine
+            const message = `🍕 *NUOVO ORDINE*
 
-ID ordine: ${{result.order_id}}
-Nome: ${{payload.customer_name}}
-Telefono: ${{payload.phone}}
-Tipo ordine: ${{orderTypeText}}
-Orario richiesto: ${{payload.requested_time || '-'}}
-Indirizzo: ${{addressText}}
-Note: ${{payload.notes || '-'}}
+👤 Nome: ${{payload.customer_name}}
+📞 Tel: ${{payload.phone}}
 
-Ordine:
+🛍 ORDINE:
 ${{itemsText}}
-Totale: €${{total.toFixed(2)}}
 
-Confermate questo orario?`;
+💰 Totale: €${{total.toFixed(2)}}
+
+📍 Tipo: ${{orderTypeText}}
+📦 Indirizzo: ${{payload.order_type === 'delivery' ? (payload.address || '-') : '-'}}
+⏰ Orario: ${{payload.requested_time || '-'}}
+📝 Note: ${{payload.notes || '-'}}
+
+👉 Confermate questo ordine?`;
 
             const whatsappUrl = `https://wa.me/{WHATSAPP_NUMBER}?text=${{encodeURIComponent(message)}}`;
             window.location.href = whatsappUrl;
@@ -1138,16 +1194,16 @@ def prenota():
             const people = document.getElementById('people').value;
             const notes = document.getElementById('notes').value || '-';
 
-            const message = `Prenotazione tavolo
+            const message = `🍽 *PRENOTAZIONE TAVOLO*
 
-Nome: ${{name}}
-Telefono: ${{phone}}
-Data: ${{date}}
-Ora: ${{time}}
-Persone: ${{people}}
-Note: ${{notes}}
+👤 Nome: ${{name}}
+📞 Tel: ${{phone}}
+📅 Data: ${{date}}
+⏰ Ora: ${{time}}
+👥 Persone: ${{people}}
+📝 Note: ${{notes}}
 
-Confermate?`;
+👉 Confermate?`;
 
             const url = "https://wa.me/{WHATSAPP_NUMBER}?text=" + encodeURIComponent(message);
             window.location.href = url;
@@ -1241,7 +1297,7 @@ def menu_view():
 
 @app.get("/admin", response_class=HTMLResponse)
 def admin():
-    return """
+    return f"""
     <!DOCTYPE html>
     <html lang="it">
     <head>
@@ -1249,33 +1305,33 @@ def admin():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Admin Menu</title>
         <style>
-            body {
+            body {{
                 font-family: Arial, sans-serif;
-                background: linear-gradient(180deg, #ff7a00, #ffae42);
+                background: linear-gradient(180deg, {PRIMARY_COLOR}, #ffae42);
                 margin: 0;
                 padding: 24px 14px;
-            }
-            .container {
+            }}
+            .container {{
                 max-width: 700px;
                 margin: 0 auto;
-            }
-            .admin-box {
+            }}
+            .admin-box {{
                 background: rgba(255,255,255,0.97);
                 border-radius: 28px;
                 padding: 24px;
                 box-shadow: 0 18px 40px rgba(0,0,0,0.14);
-            }
-            .simple-logo {
+            }}
+            .simple-logo {{
                 width: min(220px, 72vw);
                 max-height: 90px;
                 object-fit: contain;
                 display: block;
                 margin: 0 auto 16px auto;
-            }
-            h1, h2 {
-                color: #ff6b00;
-            }
-            input, button {
+            }}
+            h1, h2 {{
+                color: {PRIMARY_COLOR};
+            }}
+            input, button {{
                 width: 100%;
                 padding: 14px;
                 margin-top: 10px;
@@ -1283,30 +1339,30 @@ def admin():
                 border-radius: 14px;
                 border: 1px solid #ddd;
                 font-size: 15px;
-            }
-            button {
-                background: linear-gradient(135deg, #ff6b00, #e45c00);
+            }}
+            button {{
+                background: linear-gradient(135deg, {PRIMARY_COLOR}, #e45c00);
                 color: white;
                 border: none;
                 font-weight: 900;
                 cursor: pointer;
-            }
-            .item {
+            }}
+            .item {{
                 padding: 12px 0;
                 border-bottom: 1px solid #eee;
-            }
-            a {
+            }}
+            a {{
                 text-decoration: none;
                 color: #333;
                 font-weight: 800;
-            }
+            }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="admin-box">
                 <a href="/">← Torna alla home</a>
-                <img src="/static/logo.png" alt="ECOMORA" class="simple-logo">
+                <img src="{BRAND_LOGO}" alt="{BRAND_NAME}" class="simple-logo">
                 <h1>Admin Menu</h1>
 
                 <h2>Aggiungi prodotto</h2>
@@ -1321,41 +1377,41 @@ def admin():
         </div>
 
         <script>
-            async function loadMenu() {
+            async function loadMenu() {{
                 const res = await fetch('/menu');
                 const data = await res.json();
 
                 let html = '';
-                data.forEach(i => {
-                    html += `<div class="item"><b>${i.name}</b> - ${i.category} - €${i.price}</div>`;
-                });
+                data.forEach(i => {{
+                    html += `<div class="item"><b>${{i.name}}</b> - ${{i.category}} - €${{i.price}}</div>`;
+                }});
 
                 document.getElementById('menu').innerHTML = html;
-            }
+            }}
 
-            async function addItem() {
+            async function addItem() {{
                 const name = document.getElementById('name').value;
                 const category = document.getElementById('category').value;
                 const price = document.getElementById('price').value;
 
-                const res = await fetch('/add-item', {
+                const res = await fetch('/add-item', {{
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ name, category, price })
-                });
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{ name, category, price }})
+                }});
 
                 const result = await res.json();
 
-                if (!res.ok) {
+                if (!res.ok) {{
                     alert(result.detail || 'Errore');
                     return;
-                }
+                }}
 
                 document.getElementById('name').value = '';
                 document.getElementById('category').value = '';
                 document.getElementById('price').value = '';
                 loadMenu();
-            }
+            }}
 
             loadMenu();
         </script>
@@ -1371,7 +1427,7 @@ def orders_view():
         cursor.execute("SELECT * FROM orders ORDER BY id DESC")
         orders = cursor.fetchall()
 
-    html = """
+    html = f"""
     <!DOCTYPE html>
     <html lang="it">
     <head>
@@ -1379,52 +1435,52 @@ def orders_view():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Ordini</title>
         <style>
-            body {
+            body {{
                 font-family: Arial, sans-serif;
-                background: linear-gradient(180deg, #ff7a00, #ffae42);
+                background: linear-gradient(180deg, {PRIMARY_COLOR}, #ffae42);
                 padding: 24px 14px;
                 margin: 0;
-            }
-            .container {
+            }}
+            .container {{
                 max-width: 800px;
                 margin: 0 auto;
-            }
-            .orders-box {
+            }}
+            .orders-box {{
                 background: rgba(255,255,255,0.97);
                 border-radius: 28px;
                 padding: 24px;
                 box-shadow: 0 18px 40px rgba(0,0,0,0.14);
-            }
-            .simple-logo {
+            }}
+            .simple-logo {{
                 width: min(220px, 72vw);
                 max-height: 90px;
                 object-fit: contain;
                 display: block;
                 margin: 0 auto 16px auto;
-            }
-            .order-card {
+            }}
+            .order-card {{
                 background: white;
                 border-radius: 18px;
                 padding: 16px;
                 margin-bottom: 14px;
                 box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            }
-            a {
+            }}
+            a {{
                 text-decoration: none;
                 color: #333;
                 font-weight: 800;
-            }
-            h1 {
-                color: #ff6b00;
+            }}
+            h1 {{
+                color: {PRIMARY_COLOR};
                 text-align: center;
-            }
+            }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="orders-box">
                 <a href="/">← Torna alla home</a>
-                <img src="/static/logo.png" alt="ECOMORA" class="simple-logo">
+                <img src="{BRAND_LOGO}" alt="{BRAND_NAME}" class="simple-logo">
                 <h1>Ordini ricevuti</h1>
     """
 
