@@ -6,16 +6,24 @@ from typing import List, Optional, Literal
 import sqlite3
 from contextlib import closing
 
-app = FastAPI(title="ECOMORA Web App")
+app = FastAPI(title="ECOMORA Food App")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 DB_NAME = "restaurant.db"
 WHATSAPP_NUMBER = "393884027650"
-PHONE_NUMBER = "+393884027650"
 BRAND_NAME = "PIZZERIA DA MARIO"
 BRAND_SUBTITLE = "Ordina, prenota e scopri il menu"
 BRAND_LOGO = "/static/logo.png"
 PRIMARY_COLOR = "#ff7a00"
+
+CATEGORY_ORDER = {
+    "Pizze": 1,
+    "Primi": 2,
+    "Secondi": 3,
+    "Fritti": 4,
+    "Bevande": 5,
+    "Dolci": 6,
+}
 
 
 def get_connection():
@@ -157,10 +165,10 @@ def get_menu():
 
     with closing(get_connection()) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM menu_items WHERE available = 1 ORDER BY category, name")
+        cursor.execute("SELECT * FROM menu_items WHERE available = 1")
         rows = cursor.fetchall()
 
-        return [
+        items = [
             {
                 "id": row["id"],
                 "name": row["name"],
@@ -173,6 +181,9 @@ def get_menu():
             }
             for row in rows
         ]
+
+        items.sort(key=lambda x: (CATEGORY_ORDER.get(x["category"], 999), x["name"]))
+        return items
 
 
 @app.post("/orders")
@@ -274,13 +285,17 @@ def base_style() -> str:
     <style>
         :root {{
             --bg1: {PRIMARY_COLOR};
-            --bg2: #ffae42;
-            --card: rgba(255,255,255,0.97);
+            --bg2: #ffb347;
+            --card: rgba(255,255,255,0.98);
+            --surface: #fff9f4;
             --text: #1f2937;
             --muted: #6b7280;
             --line: #ececec;
-            --shadow: 0 18px 40px rgba(0,0,0,0.14);
-            --radius-xl: 26px;
+            --shadow: 0 18px 45px rgba(0,0,0,0.15);
+            --soft-shadow: 0 10px 24px rgba(0,0,0,0.08);
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 16px;
             --primary: {PRIMARY_COLOR};
             --primary-dark: #e45c00;
             --green: #25D366;
@@ -309,21 +324,21 @@ def base_style() -> str:
             position: fixed;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.06;
-            font-size: 120px;
+            opacity: 0.05;
+            font-size: 110px;
             line-height: 1;
         }}
 
         body::before {{
             content: "🍕";
-            top: 10px;
+            top: 14px;
             left: 4px;
             transform: rotate(-10deg);
         }}
 
         body::after {{
             content: "🍝";
-            bottom: 16px;
+            bottom: 18px;
             right: 4px;
             transform: rotate(8deg);
         }}
@@ -334,17 +349,19 @@ def base_style() -> str:
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            padding: 16px 10px 92px;
+            padding: 18px 10px 190px;
         }}
 
         .container {{
             width: 100%;
-            max-width: 620px;
+            max-width: 640px;
+            margin: 0 auto;
+            text-align: center;
         }}
 
         .topbar {{
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }}
 
         .brand-logo-wrap {{
@@ -354,8 +371,8 @@ def base_style() -> str:
         }}
 
         .brand-logo {{
-            width: min(230px, 76vw);
-            max-height: 86px;
+            width: min(250px, 76vw);
+            max-height: 96px;
             object-fit: contain;
             filter: drop-shadow(0 8px 18px rgba(0,0,0,0.14));
         }}
@@ -365,6 +382,7 @@ def base_style() -> str:
             font-size: 13px;
             font-weight: 700;
             text-align: center;
+            letter-spacing: 0.2px;
         }}
 
         .hero-box,
@@ -381,36 +399,45 @@ def base_style() -> str:
         .panel,
         #cart,
         form {{
-            padding: 18px;
+            padding: 20px;
+        }}
+
+        .panel-large-gap {{
+            margin-bottom: 28px;
+        }}
+
+        .section-gap {{
+            margin-top: 6px;
         }}
 
         h1 {{
             margin: 0 0 8px 0;
             text-align: center;
             color: var(--primary);
-            font-size: 28px;
+            font-size: 30px;
             line-height: 1.15;
         }}
 
         .subtitle {{
-            margin: 0;
+            margin: 0 auto;
             text-align: center;
             color: var(--muted);
-            line-height: 1.45;
+            line-height: 1.5;
             font-size: 14px;
+            max-width: 500px;
         }}
 
         h2 {{
             margin: 18px 0 10px;
             color: white;
             text-align: center;
-            font-size: 20px;
+            font-size: 21px;
         }}
 
         .grid-3 {{
             display: grid;
             grid-template-columns: 1fr;
-            gap: 12px;
+            gap: 14px;
             margin-top: 18px;
         }}
 
@@ -418,19 +445,25 @@ def base_style() -> str:
             display: block;
             text-decoration: none;
             color: white;
-            border-radius: 22px;
-            padding: 18px 16px;
+            border-radius: 24px;
+            padding: 20px 18px;
             box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.18s ease;
+        }}
+
+        .choice-card:hover {{
+            transform: translateY(-2px);
         }}
 
         .choice-card .emoji {{
-            font-size: 30px;
+            font-size: 32px;
             margin-bottom: 8px;
         }}
 
         .choice-card h3 {{
             margin: 0 0 6px 0;
-            font-size: 22px;
+            font-size: 24px;
             color: white;
         }}
 
@@ -451,50 +484,34 @@ def base_style() -> str:
         .prenota-card {{ background: linear-gradient(135deg, #14b8a6, #0f766e); }}
         .menu-card {{ background: linear-gradient(135deg, #3b82f6, #1d4ed8); }}
 
-        .quick-actions {{
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 14px;
-        }}
-
-        .quick-btn {{
-            display: block;
-            text-align: center;
-            text-decoration: none;
-            background: white;
-            color: var(--text);
-            padding: 14px;
-            border-radius: 16px;
-            font-weight: 800;
-            box-shadow: 0 8px 18px rgba(0,0,0,0.08);
-        }}
-
         .back-link {{
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             color: white;
             font-weight: 800;
             text-decoration: none;
-            padding: 10px 14px;
+            padding: 10px 15px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.16);
-            border: 1px solid rgba(255,255,255,0.20);
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.22);
             font-size: 14px;
         }}
 
         .accordion {{
             overflow: hidden;
             margin-bottom: 12px;
+            text-align: left;
+            background: rgba(255,255,255,0.98);
         }}
 
         .accordion-header {{
             width: 100%;
             background: white;
             border: none;
-            padding: 16px;
+            padding: 17px 18px;
             text-align: left;
             font-size: 17px;
             font-weight: 900;
@@ -505,6 +522,7 @@ def base_style() -> str:
         .accordion-content {{
             display: none;
             padding: 0 12px 12px;
+            background: white;
         }}
 
         .accordion-content.open {{
@@ -515,12 +533,14 @@ def base_style() -> str:
             display: grid;
             grid-template-columns: 1fr;
             gap: 12px;
-            background: #fffaf5;
+            background: var(--surface);
             border: 1px solid #f4e7da;
-            border-radius: 18px;
+            border-radius: 20px;
             padding: 12px;
             margin-top: 12px;
             transition: 0.2s;
+            text-align: center;
+            box-shadow: var(--soft-shadow);
         }}
 
         .menu-item:hover {{
@@ -529,14 +549,18 @@ def base_style() -> str:
 
         .menu-item img {{
             width: 100%;
-            height: 220px;
+            height: 230px;
             object-fit: cover;
-            border-radius: 14px;
+            border-radius: 16px;
             display: block;
         }}
 
+        .menu-info {{
+            text-align: center;
+        }}
+
         .menu-info strong {{
-            font-size: 20px;
+            font-size: 21px;
             display: block;
             margin-bottom: 5px;
         }}
@@ -544,7 +568,7 @@ def base_style() -> str:
         .price {{
             color: var(--primary);
             font-weight: 900;
-            font-size: 17px;
+            font-size: 18px;
             display: block;
             margin-bottom: 6px;
         }}
@@ -552,7 +576,7 @@ def base_style() -> str:
         .menu-desc {{
             color: var(--muted);
             font-size: 13px;
-            line-height: 1.4;
+            line-height: 1.45;
             margin-bottom: 8px;
         }}
 
@@ -565,6 +589,7 @@ def base_style() -> str:
 
         .qty-row input {{
             width: 100%;
+            text-align: center;
         }}
 
         .add-btn,
@@ -572,7 +597,7 @@ def base_style() -> str:
         button[type="submit"] {{
             border: none;
             border-radius: 14px;
-            padding: 13px 14px;
+            padding: 14px;
             cursor: pointer;
             font-weight: 900;
             font-size: 15px;
@@ -585,7 +610,7 @@ def base_style() -> str:
         }}
 
         #cart, form {{
-            padding: 16px;
+            padding: 18px;
         }}
 
         .cart-empty {{
@@ -601,17 +626,19 @@ def base_style() -> str:
             gap: 8px;
             padding: 12px 0;
             border-bottom: 1px solid var(--line);
+            text-align: center;
         }}
 
         .cart-main {{
             display: flex;
             flex-direction: column;
             gap: 4px;
+            text-align: center;
         }}
 
         .cart-title {{
             font-weight: 800;
-            font-size: 14px;
+            font-size: 15px;
         }}
 
         .cart-price {{
@@ -626,14 +653,7 @@ def base_style() -> str:
         }}
 
         #total {{
-            font-size: 21px;
-            font-weight: 900;
-            text-align: center;
-            margin: 10px 0 0;
-            color: white;
-            background: rgba(255,255,255,0.16);
-            padding: 10px;
-            border-radius: 14px;
+            display: none;
         }}
 
         input, select, textarea {{
@@ -645,6 +665,11 @@ def base_style() -> str:
             font-size: 15px;
             background: white;
             outline: none;
+            text-align: center;
+        }}
+
+        textarea {{
+            text-align: left;
         }}
 
         button[type="submit"] {{
@@ -670,6 +695,209 @@ def base_style() -> str:
             font-size: 14px;
         }}
 
+        .food-cart-bar {{
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 80px;
+            z-index: 30;
+            display: flex;
+            justify-content: center;
+            padding: 0 10px;
+        }}
+
+        .food-cart-inner {{
+            width: 100%;
+            max-width: 640px;
+            background: linear-gradient(135deg, #1f2937, #111827);
+            color: white;
+            border-radius: 20px;
+            padding: 14px 16px;
+            box-shadow: 0 18px 35px rgba(0,0,0,0.24);
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.08);
+        }}
+
+        .food-cart-meta {{
+            text-align: left;
+            flex: 1;
+        }}
+
+        .food-cart-label {{
+            font-size: 12px;
+            opacity: 0.8;
+        }}
+
+        .food-cart-total {{
+            font-size: 18px;
+            font-weight: 900;
+            margin-top: 2px;
+        }}
+
+        .food-cart-items {{
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 2px;
+        }}
+
+        .food-cart-note {{
+            font-size: 11px;
+            opacity: 0.78;
+            margin-top: 3px;
+        }}
+
+        .food-cart-right {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }}
+
+        .food-cart-badge {{
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: white;
+            color: #111827;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 900;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+        }}
+
+        .food-cart-btn {{
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #25D366, #1ebe5d);
+            color: white;
+            font-weight: 900;
+            padding: 14px 18px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 10px 24px rgba(37,211,102,0.28);
+        }}
+
+        .install-popup {{
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 20px);
+            max-width: 520px;
+            z-index: 60;
+            display: none;
+        }}
+
+        .install-popup-card {{
+            background: rgba(17,24,39,0.96);
+            color: white;
+            border-radius: 18px;
+            padding: 14px 16px;
+            box-shadow: 0 18px 35px rgba(0,0,0,0.28);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            text-align: left;
+        }}
+
+        .install-popup-icon {{
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ff7a00, #ffb347);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }}
+
+        .install-popup-title {{
+            font-weight: 900;
+            font-size: 14px;
+        }}
+
+        .install-popup-text {{
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 2px;
+            line-height: 1.4;
+        }}
+
+        .install-popup-actions {{
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }}
+
+        .install-popup-install {{
+            background: linear-gradient(135deg, #25D366, #1ebe5d);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+        }}
+
+        .install-popup-close {{
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.18);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }}
+
+        .splash-screen {{
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #ff7a00, #ffb347);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 99999;
+            color: white;
+            transition: opacity 0.5s ease;
+        }}
+
+        .splash-logo {{
+            width: 120px;
+            max-width: 38vw;
+            margin-bottom: 18px;
+        }}
+
+        .splash-text {{
+            font-size: 22px;
+            font-weight: 900;
+        }}
+
+        .toast {{
+            position: fixed;
+            bottom: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111827;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 14px;
+            display: none;
+            z-index: 9999;
+            font-weight: 700;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.18);
+        }}
+
         .app-nav {{
             position: fixed;
             left: 0;
@@ -684,7 +912,7 @@ def base_style() -> str:
 
         .app-nav-inner {{
             width: 100%;
-            max-width: 620px;
+            max-width: 640px;
             background: rgba(255,255,255,0.98);
             border-radius: 20px;
             box-shadow: 0 16px 30px rgba(0,0,0,0.18);
@@ -710,10 +938,11 @@ def base_style() -> str:
 
         .admin-box,
         .orders-box {{
-            background: rgba(255,255,255,0.97);
+            background: rgba(255,255,255,0.98);
             border-radius: 28px;
             padding: 24px;
-            box-shadow: 0 18px 40px rgba(0,0,0,0.14);
+            box-shadow: var(--shadow);
+            text-align: center;
         }}
 
         .simple-logo {{
@@ -727,6 +956,7 @@ def base_style() -> str:
         .item {{
             padding: 12px 0;
             border-bottom: 1px solid #eee;
+            text-align: center;
         }}
 
         .order-card {{
@@ -735,22 +965,57 @@ def base_style() -> str:
             padding: 16px;
             margin-bottom: 14px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }}
+
+        @media (max-width: 560px) {{
+            .install-popup-card {{
+                flex-wrap: wrap;
+            }}
+
+            .install-popup-actions {{
+                width: 100%;
+                margin-left: 0;
+            }}
+
+            .install-popup-install,
+            .install-popup-close {{
+                flex: 1;
+            }}
+
+            .food-cart-inner {{
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }}
+
+            .food-cart-meta {{
+                text-align: center;
+            }}
+
+            .food-cart-right {{
+                justify-content: center;
+            }}
+
+            .food-cart-btn {{
+                width: 100%;
+            }}
         }}
 
         @media (min-width: 700px) {{
             .page-wrap {{
-                padding: 24px 16px 96px;
+                padding: 26px 16px 196px;
             }}
 
             .hero-box,
             .panel,
             #cart,
             form {{
-                padding: 22px;
+                padding: 24px;
             }}
 
             .menu-item img {{
-                height: 260px;
+                height: 270px;
             }}
 
             .cart-row {{
@@ -768,7 +1033,7 @@ def base_style() -> str:
             }}
 
             h1 {{
-                font-size: 34px;
+                font-size: 36px;
             }}
         }}
     </style>
@@ -783,6 +1048,33 @@ def bottom_nav() -> str:
             <a href="/menu-view"><span class="icon">📖</span>Menu</a>
             <a href="/ordina"><span class="icon">🛒</span>Ordina</a>
             <a href="/prenota"><span class="icon">🍽</span>Prenota</a>
+        </div>
+    </div>
+    """
+
+
+def floating_ui() -> str:
+    return f"""
+    <div class="splash-screen" id="splash-screen">
+        <img src="{BRAND_LOGO}" alt="{BRAND_NAME}" class="splash-logo">
+        <div class="splash-text">Caricamento...</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="install-popup" id="install-popup">
+        <div class="install-popup-card">
+            <div class="install-popup-icon">📲</div>
+            <div>
+                <div class="install-popup-title">Scarica l'app sul telefono</div>
+                <div class="install-popup-text">
+                    Aggiungila alla schermata Home per usarla come una vera app.
+                </div>
+            </div>
+            <div class="install-popup-actions">
+                <button class="install-popup-install" id="install-app-btn" type="button">Installa</button>
+                <button class="install-popup-close" type="button" onclick="closeInstallPopup()">Chiudi</button>
+            </div>
         </div>
     </div>
     """
@@ -805,6 +1097,8 @@ def shell_page(title: str, body_content: str) -> HTMLResponse:
         {base_style()}
     </head>
     <body>
+        {floating_ui()}
+
         <div class="page-wrap">
             <div class="container">
                 <div class="topbar">
@@ -820,11 +1114,102 @@ def shell_page(title: str, body_content: str) -> HTMLResponse:
         {bottom_nav()}
 
         <script>
-            if ('serviceWorker' in navigator) {{
-                window.addEventListener('load', function() {{
-                    navigator.serviceWorker.register('/static/sw.js');
-                }});
+            let deferredPrompt = null;
+            let installPopupTimeout = null;
+            let hidePopupTimeout = null;
+
+            function showToast(text) {{
+                const t = document.getElementById('toast');
+                if (!t) return;
+                t.innerText = text;
+                t.style.display = 'block';
+                setTimeout(() => {{
+                    t.style.display = 'none';
+                }}, 2000);
             }}
+
+            function vibrate() {{
+                if (navigator.vibrate) {{
+                    navigator.vibrate(60);
+                }}
+            }}
+
+            function isAppInstalled() {{
+                return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            }}
+
+            function closeInstallPopup() {{
+                const popup = document.getElementById('install-popup');
+                if (popup) popup.style.display = 'none';
+            }}
+
+            function showInstallPopup() {{
+                if (isAppInstalled()) return;
+                const popup = document.getElementById('install-popup');
+                if (!popup) return;
+                popup.style.display = 'block';
+
+                if (hidePopupTimeout) clearTimeout(hidePopupTimeout);
+                hidePopupTimeout = setTimeout(function() {{
+                    popup.style.display = 'none';
+                }}, 20000);
+            }}
+
+            window.addEventListener('beforeinstallprompt', function(e) {{
+                e.preventDefault();
+                deferredPrompt = e;
+
+                if (!isAppInstalled()) {{
+                    if (installPopupTimeout) clearTimeout(installPopupTimeout);
+                    installPopupTimeout = setTimeout(function() {{
+                        showInstallPopup();
+                    }}, 5000);
+                }}
+            }});
+
+            window.addEventListener('appinstalled', function() {{
+                closeInstallPopup();
+                deferredPrompt = null;
+            }});
+
+            window.addEventListener('load', function() {{
+                if ('serviceWorker' in navigator) {{
+                    navigator.serviceWorker.register('/static/sw.js');
+                }}
+
+                const splash = document.getElementById('splash-screen');
+                setTimeout(function() {{
+                    if (splash) {{
+                        splash.style.opacity = '0';
+                        setTimeout(function() {{
+                            splash.remove();
+                        }}, 500);
+                    }}
+                }}, 1200);
+
+                const installBtn = document.getElementById('install-app-btn');
+                if (installBtn) {{
+                    installBtn.addEventListener('click', async function() {{
+                        if (!deferredPrompt) {{
+                            closeInstallPopup();
+                            return;
+                        }}
+
+                        deferredPrompt.prompt();
+                        const choiceResult = await deferredPrompt.userChoice;
+
+                        if (choiceResult.outcome === 'accepted') {{
+                            closeInstallPopup();
+                        }}
+
+                        deferredPrompt = null;
+                    }});
+                }}
+
+                if (isAppInstalled()) {{
+                    closeInstallPopup();
+                }}
+            }});
         </script>
     </body>
     </html>
@@ -834,87 +1219,36 @@ def shell_page(title: str, body_content: str) -> HTMLResponse:
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    return HTMLResponse(f"""
-    <!DOCTYPE html>
-    <html lang="it">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{BRAND_NAME}</title>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                background: linear-gradient(180deg, {PRIMARY_COLOR}, #ff9f1c);
-                text-align: center;
-                color: white;
-                padding: 20px;
-                margin: 0;
-                min-height: 100vh;
-            }}
-            .wrap {{
-                max-width: 520px;
-                margin: 0 auto;
-                padding-top: 20px;
-            }}
-            .logo {{
-                width: 140px;
-                max-width: 70%;
-                border-radius: 20px;
-                margin-bottom: 10px;
-            }}
-            h1 {{
-                margin: 10px 0 8px;
-                font-size: 34px;
-            }}
-            p {{
-                margin: 0;
-                font-size: 16px;
-                opacity: 0.96;
-            }}
-            .card {{
-                background: white;
-                color: black;
-                border-radius: 24px;
-                padding: 20px;
-                margin-top: 24px;
-                box-shadow: 0 18px 40px rgba(0,0,0,0.18);
-            }}
-            .btn {{
-                display: block;
-                padding: 18px;
-                margin: 12px 0;
-                border-radius: 16px;
-                font-size: 18px;
-                font-weight: bold;
-                text-decoration: none;
-                color: white;
-            }}
-            .ordina {{ background: #ff3d00; }}
-            .prenota {{ background: #14b8a6; }}
-            .menu {{ background: #3b82f6; }}
-            .sub {{
-                color: #6b7280;
-                margin-top: 8px;
-                line-height: 1.5;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="wrap">
-            <img src="{BRAND_LOGO}" class="logo" alt="{BRAND_NAME}">
-            <h1>{BRAND_NAME}</h1>
-            <p>Ordina facilmente dal tuo telefono</p>
+    body = f"""
+    <div class="hero-box">
+        <h1>{BRAND_NAME}</h1>
+        <p class="subtitle">Un’esperienza digitale più elegante, veloce e professionale per ordini, prenotazioni e menu.</p>
 
-            <div class="card">
-                <a class="btn ordina" href="/ordina">📲 ORDINA ORA</a>
-                <a class="btn prenota" href="/prenota">🍽 PRENOTA TAVOLO</a>
-                <a class="btn menu" href="/menu-view">📖 MENU</a>
-                <div class="sub">Menu digitale, ordini su WhatsApp e prenotazioni in un'unica web app.</div>
-            </div>
+        <div class="grid-3">
+            <a class="choice-card ordina-card" href="/ordina">
+                <div class="emoji">📲</div>
+                <h3>Ordina ora</h3>
+                <p>Asporto o domicilio con invio diretto su WhatsApp.</p>
+                <span class="cta">Apri ordini →</span>
+            </a>
+
+            <a class="choice-card prenota-card" href="/prenota">
+                <div class="emoji">🍽</div>
+                <h3>Prenota tavolo</h3>
+                <p>Richiedi conferma in pochi secondi.</p>
+                <span class="cta">Prenota →</span>
+            </a>
+
+            <a class="choice-card menu-card" href="/menu-view">
+                <div class="emoji">📖</div>
+                <h3>Guarda il menu</h3>
+                <p>Pizze, primi, secondi, fritti, bevande e dolci.</p>
+                <span class="cta">Apri menu →</span>
+            </a>
         </div>
-    </body>
-    </html>
-    """)
+    </div>
+    """
+    return shell_page("Home", body)
 
 
 @app.get("/ordina", response_class=HTMLResponse)
@@ -922,17 +1256,16 @@ def ordina():
     body = f"""
     <a class="back-link" href="/">← Torna alla home</a>
 
-    <div class="panel">
+    <div class="panel panel-large-gap">
         <h1>Ordina online</h1>
         <p class="subtitle">Scegli i prodotti, aggiungili al carrello e invia l’ordine per conferma.</p>
     </div>
 
     <h2>Menu</h2>
-    <div id="menu-list"></div>
+    <div id="menu-list" class="section-gap"></div>
 
     <h2>Carrello</h2>
     <div id="cart"></div>
-    <p id="total">Totale: €0.00</p>
 
     <h2>Dati ordine</h2>
     <form id="order-form">
@@ -949,6 +1282,24 @@ def ordina():
         <div class="helper-text">Ordine salvato e inviato direttamente al locale.</div>
     </form>
 
+    <div class="food-cart-bar">
+        <div class="food-cart-inner" id="food-cart-inner">
+            <div class="food-cart-meta">
+                <div class="food-cart-label">Il tuo carrello</div>
+                <div class="food-cart-total" id="food-cart-total">€0.00</div>
+                <div class="food-cart-items" id="food-cart-items">0 prodotti nel carrello</div>
+                <div class="food-cart-note">Controlla il totale e completa l'ordine</div>
+            </div>
+
+            <div class="food-cart-right">
+                <div class="food-cart-badge" id="food-cart-badge">0</div>
+                <button type="button" class="food-cart-btn" onclick="goToCheckout()">
+                    Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
     <p id="result"></p>
 
     <script>
@@ -962,6 +1313,10 @@ def ordina():
             "Bevande": "Bibite e bevande per accompagnare ogni ordine.",
             "Dolci": "Dessert golosi per concludere in bellezza."
         }};
+
+        function goToCheckout() {{
+            document.getElementById('order-form').scrollIntoView({{ behavior: 'smooth' }});
+        }}
 
         async function loadMenu() {{
             try {{
@@ -977,7 +1332,11 @@ def ordina():
                     grouped[item.category].push(item);
                 }});
 
-                Object.keys(grouped).forEach((category, index) => {{
+                const orderedCategories = ["Pizze", "Primi", "Secondi", "Fritti", "Bevande", "Dolci"];
+
+                orderedCategories.forEach((category) => {{
+                    if (!grouped[category]) return;
+
                     const wrapper = document.createElement('div');
                     wrapper.className = 'accordion';
 
@@ -988,7 +1347,6 @@ def ordina():
 
                     const content = document.createElement('div');
                     content.className = 'accordion-content';
-                    if (index === 0) content.classList.add('open');
 
                     header.addEventListener('click', function() {{
                         content.classList.toggle('open');
@@ -1021,6 +1379,7 @@ def ordina():
                     wrapper.appendChild(content);
                     menuList.appendChild(wrapper);
                 }});
+
             }} catch (error) {{
                 document.getElementById('menu-list').innerHTML = '<div class="panel">Errore nel caricamento del menu</div>';
             }}
@@ -1031,6 +1390,7 @@ def ordina():
             if (!quantity || quantity < 1) return;
 
             const existing = selectedItems.find(i => i.menu_item_id === menuItemId);
+
             if (existing) {{
                 existing.quantity += quantity;
             }} else {{
@@ -1041,6 +1401,9 @@ def ordina():
                     name: name
                 }});
             }}
+
+            vibrate();
+            showToast("✅ Aggiunto al carrello");
             renderCart();
         }}
 
@@ -1051,18 +1414,26 @@ def ordina():
 
         function renderCart() {{
             const cart = document.getElementById('cart');
+            const sticky = document.getElementById('food-cart-inner');
+            const stickyTotal = document.getElementById('food-cart-total');
+            const stickyItems = document.getElementById('food-cart-items');
+            const stickyBadge = document.getElementById('food-cart-badge');
+
             let total = 0;
+            let count = 0;
             cart.innerHTML = '';
 
             if (selectedItems.length === 0) {{
                 cart.innerHTML = '<div class="cart-empty">Il carrello è vuoto</div>';
-                document.getElementById('total').innerText = 'Totale: €0.00';
+                sticky.style.display = 'none';
+                stickyBadge.innerText = '0';
                 return;
             }}
 
             selectedItems.forEach(item => {{
                 const subtotal = item.price * item.quantity;
                 total += subtotal;
+                count += item.quantity;
 
                 const row = document.createElement('div');
                 row.className = 'cart-row';
@@ -1085,7 +1456,10 @@ def ordina():
                 cart.appendChild(row);
             }});
 
-            document.getElementById('total').innerText = `Totale: €${{total.toFixed(2)}}`;
+            sticky.style.display = 'flex';
+            stickyTotal.innerText = `€${{total.toFixed(2)}}`;
+            stickyItems.innerText = `${{count}} prodotti nel carrello`;
+            stickyBadge.innerText = count > 99 ? '99+' : String(count);
         }}
 
         document.getElementById('order-form').addEventListener('submit', async function(e) {{
@@ -1149,7 +1523,11 @@ ${{itemsText}}
 👉 Confermate questo ordine?`;
 
             const whatsappUrl = `https://wa.me/{WHATSAPP_NUMBER}?text=${{encodeURIComponent(message)}}`;
-            window.location.href = whatsappUrl;
+
+            showToast("🚀 Invio ordine...");
+            setTimeout(() => {{
+                window.location.href = whatsappUrl;
+            }}, 800);
         }});
 
         loadMenu();
@@ -1164,12 +1542,12 @@ def prenota():
     body = f"""
     <a class="back-link" href="/">← Torna alla home</a>
 
-    <div class="panel">
+    <div class="panel panel-large-gap">
         <h1>Prenota un tavolo</h1>
         <p class="subtitle">Inserisci i dati e richiedi la conferma in modo semplice e veloce.</p>
     </div>
 
-    <form id="booking-form">
+    <form id="booking-form" class="section-gap">
         <input id="name" placeholder="Nome" required>
         <input id="phone" placeholder="Telefono" required>
         <input id="date" type="date" required>
@@ -1206,7 +1584,10 @@ def prenota():
 👉 Confermate?`;
 
             const url = "https://wa.me/{WHATSAPP_NUMBER}?text=" + encodeURIComponent(message);
-            window.location.href = url;
+            showToast("📅 Invio prenotazione...");
+            setTimeout(() => {{
+                window.location.href = url;
+            }}, 800);
         }});
     </script>
     """
@@ -1218,12 +1599,12 @@ def menu_view():
     body = """
     <a class="back-link" href="/">← Torna alla home</a>
 
-    <div class="panel">
+    <div class="panel panel-large-gap">
         <h1>Il nostro menu</h1>
         <p class="subtitle">Consulta tutte le categorie in una pagina chiara e comoda da mobile.</p>
     </div>
 
-    <div id="menu-list"></div>
+    <div id="menu-list" class="section-gap"></div>
 
     <script>
         const descriptions = {
@@ -1249,7 +1630,11 @@ def menu_view():
                     grouped[item.category].push(item);
                 });
 
-                Object.keys(grouped).forEach((category, index) => {
+                const orderedCategories = ["Pizze", "Primi", "Secondi", "Fritti", "Bevande", "Dolci"];
+
+                orderedCategories.forEach((category) => {
+                    if (!grouped[category]) return;
+
                     const wrapper = document.createElement('div');
                     wrapper.className = 'accordion';
 
@@ -1260,7 +1645,6 @@ def menu_view():
 
                     const content = document.createElement('div');
                     content.className = 'accordion-content';
-                    if (index === 0) content.classList.add('open');
 
                     header.addEventListener('click', function() {
                         content.classList.toggle('open');
@@ -1307,7 +1691,7 @@ def admin():
         <style>
             body {{
                 font-family: Arial, sans-serif;
-                background: linear-gradient(180deg, {PRIMARY_COLOR}, #ffae42);
+                background: linear-gradient(180deg, {PRIMARY_COLOR}, #ffb347);
                 margin: 0;
                 padding: 24px 14px;
             }}
@@ -1316,10 +1700,11 @@ def admin():
                 margin: 0 auto;
             }}
             .admin-box {{
-                background: rgba(255,255,255,0.97);
+                background: rgba(255,255,255,0.98);
                 border-radius: 28px;
                 padding: 24px;
-                box-shadow: 0 18px 40px rgba(0,0,0,0.14);
+                box-shadow: 0 18px 45px rgba(0,0,0,0.15);
+                text-align: center;
             }}
             .simple-logo {{
                 width: min(220px, 72vw);
@@ -1339,6 +1724,7 @@ def admin():
                 border-radius: 14px;
                 border: 1px solid #ddd;
                 font-size: 15px;
+                text-align: center;
             }}
             button {{
                 background: linear-gradient(135deg, {PRIMARY_COLOR}, #e45c00);
@@ -1350,6 +1736,7 @@ def admin():
             .item {{
                 padding: 12px 0;
                 border-bottom: 1px solid #eee;
+                text-align: center;
             }}
             a {{
                 text-decoration: none;
@@ -1437,7 +1824,7 @@ def orders_view():
         <style>
             body {{
                 font-family: Arial, sans-serif;
-                background: linear-gradient(180deg, {PRIMARY_COLOR}, #ffae42);
+                background: linear-gradient(180deg, {PRIMARY_COLOR}, #ffb347);
                 padding: 24px 14px;
                 margin: 0;
             }}
@@ -1446,10 +1833,11 @@ def orders_view():
                 margin: 0 auto;
             }}
             .orders-box {{
-                background: rgba(255,255,255,0.97);
+                background: rgba(255,255,255,0.98);
                 border-radius: 28px;
                 padding: 24px;
-                box-shadow: 0 18px 40px rgba(0,0,0,0.14);
+                box-shadow: 0 18px 45px rgba(0,0,0,0.15);
+                text-align: center;
             }}
             .simple-logo {{
                 width: min(220px, 72vw);
@@ -1464,6 +1852,7 @@ def orders_view():
                 padding: 16px;
                 margin-bottom: 14px;
                 box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+                text-align: center;
             }}
             a {{
                 text-decoration: none;
